@@ -5,7 +5,7 @@ namespace CSVReader.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext( DbContextOptions<DbContext> options) : base(options)
+        public ApplicationDbContext( DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
         }
@@ -20,7 +20,8 @@ namespace CSVReader.Data
                 entity.Property(p => p.Phone).IsRequired().HasMaxLength(32);
                 entity.Property(p => p.Salary).IsRequired().HasMaxLength(16);
                 entity.Property(p => p.IsMarried).IsRequired();
-            }
+                entity.Property(p => p.DateOfBirth).IsRequired();
+            });
 
         }
         public DbSet<Person> Persons { get; set; }

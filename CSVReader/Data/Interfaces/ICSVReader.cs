@@ -4,11 +4,10 @@ namespace CSVReader.Data.Interfaces
 {
     public interface ICSVReader
     {
-        void AddEntity(object person);
-        IEnumerable<Person> GetAllPersons();
+        Task<int> UploadCvsToDb(IFormFile cvsFile);
+        public Task<IEnumerable<Person>> GetAllPersonsAsync();
 
-        Person GetPerson(int id);
 
-        bool SaveAll();
+
     }
 }
