@@ -9,10 +9,11 @@ using CSVReader.Data;
 using CSVReader.Models;
 using CSVReader.Data.Repositories;
 using CSVReader.Data.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using System.Net;
 
 namespace CSVReader.Controllers
 {
-    [Route("People")]
     public class CSVPersonController : Controller
     {
         private readonly ICSVReader _repository;
@@ -23,7 +24,6 @@ namespace CSVReader.Controllers
             _repository = repository;
             _logger = logger;
         }
-
         // GET: CSVPerson
         public async Task<IActionResult> Index()
         {
@@ -31,17 +31,36 @@ namespace CSVReader.Controllers
             return View(people);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> UploadCvs(IFormFile file)
         {
             await _repository.UploadCvsToDb(file);
             return RedirectToAction("Index");
         }
+        //[HttpPost]
+        //public async Task<IActionResult> Update(int id, string Name, bool IsMarried, string Phone, DateTime DateOfBirth, decimal Salary)
+        //{
+        //    Person person = await _repository.GetPersonById(id);
 
-        // POST: CSVPerson/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
+        //    person.Name = Name;
+        //    person.IsMarried = IsMarried;
+        //    person.Phone = Phone;
+        //    person.DateOfBirth = DateOfBirth;
+        //    person.Salary = Salary;
+
+        //    _repository.UpdatePerson(person);
+
+        //    return Ok(person);
+        //}
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _repository.DeleteAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+
+
 
 
 

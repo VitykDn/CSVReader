@@ -4,62 +4,164 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<div class="row">
+    <div>
+        <form class="form-group" asp-action="UploadCvs" method="post" enctype="multipart/form-data">
+            <div class=" mb-2 col-4 ">
+                <label></label>
+                <input type="file" name="file" class="form-control">
 
-<p>
-    <form asp-action="UploadCvs" method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label>Choose file:</label>
-            <input type="file" name="file" class="form-control-file">
-        </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
-    </form>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsMarried)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Phone)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DateOfBirth)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Salary)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsMarried)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Phone)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DateOfBirth)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Salary)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+            </div>
+            <div class="form-group col-4 mb-2 ">
+                <button id="upload-btn" type="submit" class="btn btn-primary" disabled>Upload</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mb-3 w-25" >
+    <input type="text" class="form-control" id="search-input" placeholder="Search...">
+</div>
+<div id="person-table-container">
+    <table class="table" id="person-table">
+        <thead>
+            <tr>
+                <th>
+                    Id
+                </th>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Is Married
+                </th>
+                <th>
+                    Phone
+                </th>
+                <th>
+                    Date of Birth
+                </th>
+                <th>
+                   Salary
+                </th>
+                <th data-orderable="false"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr data-id="@item.Id">
+                    <td data-field="Id">@item.Id</td>
+                    <td class="editable" data-field="Name">@item.Name</td>
+                    <td class="editable" data-field="IsMarried">@item.IsMarried</td>
+                    <td class="editable" data-field="Phone">@item.Phone</td>
+                    <td class="editable" data-field="DateOfBirth">@item.DateOfBirth.ToShortDateString()</td>
+                    <td class="editable" data-field="Salary">@item.Salary</td>
+                    <td>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="confirmDeletion">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+
+<script>
+
+    $(document).ready(function() {
+        $('input[type="file"]').change(function() {
+            if ($(this).val()) {
+                $('#upload-btn').prop('disabled', false);
+            }
+        });
+    });
+</script>
+@*<script>
+    $(document).on('click', '.delete-btn', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        $.post('@Url.Action("Delete", "CSVPerson")', { id: id })
+            .done(function() {
+                location.reload();
+            })
+            .fail(function() {
+                alert('Failed to delete item.');
+            });
+    });
+</script>*@
+
+@*DataTable*@
+@*<script>
+    $(document).ready(function () {
+        $('#person-table').DataTable({
+            searching: false,
+            "columnDefs": [
+                { type: 'boolean', targets: 1 },
+                {"targets": 3,
+                "render": function (data, type, row, meta) {
+                    if (type === 'sort') {
+                        return moment(data, 'DD/MM/YYYY').format('YYYYMMDD');
+                    }
+                    return data;
+                }
+            }]
+        });
+    });
+</script>*@
+
+<script>
+    $(document).ready(function () {
+        $("#search-input").on("keyup", function () {
+            var value = $(this).val().toLowerCase();
+            $("table tbody tr").filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+
+@*///Inline editing///*@
+<script>
+    $(document).ready(function () {
+        $('.editable').on('click', function () {
+            // When the user clicks on an editable cell, replace the text with an input field
+            var $cell = $(this);
+            var value = $cell.text().trim();
+            $cell.html('<input type="text" value="' + value + '">');
+
+            // Set the focus on the input field
+            $cell.find('input').focus();
+        });
+
+
+        $('table').on('blur', '.editable input', function () {
+            // When the user exits an input field, get the data from the row and send it to the server to be saved
+            var $row = $(this).closest('tr');
+            var id = $row.data('id');
+            var name = $row.find('[data-field="Name"] input').val();
+            var isMarried = $row.find('[data-field="IsMarried"] input').prop('checked');
+            var phone = $row.find('[data-field="Phone"] input').val();
+            var dateOfBirth = $row.find('[data-field="DateOfBirth"] input').val();
+            var salary = $row.find('[data-field="Salary"] input').val();
+
+            $.ajax({
+                type: 'POST',
+                url: '/Person/Update',
+                data: { id: id, name: name, isMarried: isMarried, phone: phone, dateOfBirth: dateOfBirth, salary: salary },
+                success: function () {
+                    // If the data was saved successfully, update the text in the cells
+                    $row.find('[data-field="Name"]').text(name);
+                    $row.find('[data-field="IsMarried"]').text(isMarried ? 'Yes' : 'No');
+                    $row.find('[data-field="Phone"]').text(phone);
+                    $row.find('[data-field="DateOfBirth"]').text(dateOfBirth);
+                    $row.find('[data-field="Salary"]').text(salary);
+                },
+                error: function () {
+                    // If there was an error, show an alert message
+                    alert('Failed to save data.');
+                }
+            });
+        });
+    });
+</script>
