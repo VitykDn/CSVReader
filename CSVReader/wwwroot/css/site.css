@@ -16,3 +16,6 @@ html {
 body {
   margin-bottom: 60px;
 }
+input.error, input.error:focus {
+    border: 2px solid red;
+}

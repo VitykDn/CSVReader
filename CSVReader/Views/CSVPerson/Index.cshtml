@@ -52,7 +52,7 @@
                 <tr data-id="@item.Id">
                     <td data-field="Id">@item.Id</td>
                     <td class="editable" data-field="Name">@item.Name</td>
-                    <td class="editable" data-field="IsMarried">@item.IsMarried</td>
+                    <td class="editable" data-field="IsMarried"><input type="checkbox" @(item.IsMarried ? "checked" : "")  /></td>
                     <td class="editable" data-field="Phone">@item.Phone</td>
                     <td class="editable" data-field="DateOfBirth">@item.DateOfBirth.ToShortDateString()</td>
                     <td class="editable" data-field="Salary">@item.Salary</td>
@@ -66,7 +66,7 @@
 </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
 
-
+@*Upload Button*@
 <script>
 
     $(document).ready(function() {
@@ -77,39 +77,47 @@
         });
     });
 </script>
-@*<script>
-    $(document).on('click', '.delete-btn', function(e) {
-        e.preventDefault();
-        var id = $(this).data('id');
-        $.post('@Url.Action("Delete", "CSVPerson")', { id: id })
-            .done(function() {
-                location.reload();
-            })
-            .fail(function() {
-                alert('Failed to delete item.');
-            });
-    });
-</script>*@
 
-@*DataTable*@
-@*<script>
+@*Sorting*@
+<script>
     $(document).ready(function () {
-        $('#person-table').DataTable({
-            searching: false,
-            "columnDefs": [
-                { type: 'boolean', targets: 1 },
-                {"targets": 3,
-                "render": function (data, type, row, meta) {
-                    if (type === 'sort') {
-                        return moment(data, 'DD/MM/YYYY').format('YYYYMMDD');
-                    }
-                    return data;
+        var $table = $('#person-table');
+
+        var $tableRows = $table.find('tbody tr');
+
+        $table.find('thead th').click(function () {
+            var columnIndex = $(this).index();
+            var isAscending = true;
+
+            if ($(this).hasClass('sorted-asc')) {
+                isAscending = false;
+                $(this).removeClass('sorted-asc').addClass('sorted-desc');
+            }
+            else if ($(this).hasClass('sorted-desc')) {
+                $(this).removeClass('sorted-desc');
+            }
+            else {
+                $(this).addClass('sorted-asc');
+            }
+
+            $tableRows.sort(function (a, b) {
+                var aVal = $(a).find('td').eq(columnIndex).text().toUpperCase();
+                var bVal = $(b).find('td').eq(columnIndex).text().toUpperCase();
+                if (aVal < bVal) {
+                    return isAscending ? -1 : 1;
+                } else if (aVal > bVal) {
+                    return isAscending ? 1 : -1;
+                } else {
+                    return 0;
                 }
-            }]
+            });
+
+            $table.find('tbody').empty().append($tableRows);
         });
     });
-</script>*@
+</script>
 
+@*Search*@
 <script>
     $(document).ready(function () {
         $("#search-input").on("keyup", function () {
@@ -125,18 +133,29 @@
 <script>
     $(document).ready(function () {
         $('.editable').on('click', function () {
-            // When the user clicks on an editable cell, replace the text with an input field
             var $cell = $(this);
-            var value = $cell.text().trim();
-            $cell.html('<input type="text" value="' + value + '">');
+            var value = $cell.text();
+            if (value) {
+                value = value.trim();
+            }
+            var fieldName = $cell.data('field');
+            var inputType = 'text';
 
-            // Set the focus on the input field
+            if (fieldName === 'IsMarried') {
+                inputType = 'checkbox';
+            } else if (fieldName === 'DateOfBirth') {
+                inputType = 'date';
+            } else if (fieldName === 'Salary') {
+                inputType = 'number';
+            }
+
+            $cell.html('<input type="' + inputType + '" value="' + value + '">');
+
             $cell.find('input').focus();
         });
 
 
         $('table').on('blur', '.editable input', function () {
-            // When the user exits an input field, get the data from the row and send it to the server to be saved
             var $row = $(this).closest('tr');
             var id = $row.data('id');
             var name = $row.find('[data-field="Name"] input').val();
@@ -144,13 +163,46 @@
             var phone = $row.find('[data-field="Phone"] input').val();
             var dateOfBirth = $row.find('[data-field="DateOfBirth"] input').val();
             var salary = $row.find('[data-field="Salary"] input').val();
+            console.log(name);
+            if (typeof name !== 'undefined' && name.trim() === '') {
+                var $nameInput = $row.find('[data-field="Name"] input');
+                $nameInput.addClass('error');
+                $nameInput.focus();
+                return;
+            }
+            if (typeof phone !== 'undefined' && phone.trim() === '') {
+                var $phoneInput = $row.find('[data-field="Phone"] input');
+                $phoneInput.addClass('error');
+                $phoneInput.focus();
+                return;
+            }
+            if (typeof dateOfBirth !== 'undefined' && dateOfBirth.trim() === '') {
+                var $dateOfBirthInput = $row.find('[data-field="DateOfBirth"] input');
+                $dateOfBirthInput.addClass('error');
+                $dateOfBirthInput.focus();
+                return;
+            }
+            if (typeof salary !== 'undefined' && salary.trim() === '') {
+                var $salaryInput = $row.find('[data-field="Salary"] input');
+                $salaryInput.addClass('error');
+                $salaryInput.focus();
+                return;
+            }
 
+            var data = {};
+            $row.find('[data-field]').each(function () {
+                var field = $(this).data('field');
+                var value = $(this).find('input').val() || $(this).text().trim();
+                if (field === 'IsMarried') {
+                    value = $(this).find('input').prop('checked');}
+                data[field] = value;
+            });
+            console.log("data ", data)
             $.ajax({
                 type: 'POST',
-                url: '/Person/Update',
-                data: { id: id, name: name, isMarried: isMarried, phone: phone, dateOfBirth: dateOfBirth, salary: salary },
+                url: '/CSVPerson/Update',
+                 data: data ,
                 success: function () {
-                    // If the data was saved successfully, update the text in the cells
                     $row.find('[data-field="Name"]').text(name);
                     $row.find('[data-field="IsMarried"]').text(isMarried ? 'Yes' : 'No');
                     $row.find('[data-field="Phone"]').text(phone);
@@ -158,7 +210,6 @@
                     $row.find('[data-field="Salary"]').text(salary);
                 },
                 error: function () {
-                    // If there was an error, show an alert message
                     alert('Failed to save data.');
                 }
             });

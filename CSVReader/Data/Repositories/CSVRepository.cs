@@ -3,6 +3,7 @@ using CSVReader.Data.Interfaces;
 using CSVReader.Data.Mappings;
 using CSVReader.Models;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 
 namespace CSVReader.Data.Repositories
@@ -20,18 +21,25 @@ namespace CSVReader.Data.Repositories
         public async Task<int> UploadCvsToDb(IFormFile cvsFile)
         {
 
-            var persons = new List<Person>();
-            using (var reader = new StreamReader(cvsFile.OpenReadStream()))
+            try
             {
-                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                var persons = new List<Person>();
+                using (var reader = new StreamReader(cvsFile.OpenReadStream()))
                 {
-                    csv.Context.RegisterClassMap<PersonMap>();
-                    persons = csv.GetRecords<Person>().ToList();
+                    using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                    {
+                        csv.Context.RegisterClassMap<PersonMap>();
+                        persons = csv.GetRecords<Person>().ToList();
+                    }
                 }
+                await _context.Persons.AddRangeAsync(persons);
+                return await _context.SaveChangesAsync();
             }
-
-            await _context.Persons.AddRangeAsync(persons);
-            return await _context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading CVS file to database");
+                throw;
+            }
         }
 
         public async Task<IEnumerable<Person>> GetAllPersonsAsync() => await _context.Persons.ToListAsync();
@@ -46,35 +54,58 @@ namespace CSVReader.Data.Repositories
 
         public async Task<Person> DeleteAsync(int id)
         {
-            if (id == 0)
-                throw new ArgumentNullException(nameof(id), "Id not specified");
-            var existingPerson = await GetById(id);
-            if (existingPerson == null)
-                throw new ArgumentException("Person does not exist", nameof(id));
+            try
+            {
+                if (id == 0)
+                    throw new ArgumentNullException(nameof(id), "Id not specified");
 
-            _context.Persons.Remove(existingPerson);
-            await _context.SaveChangesAsync();
-            return existingPerson;
+                var existingPerson = await GetById(id);
+                if (existingPerson == null)
+                    throw new ArgumentException("Person does not exist", nameof(id));
+
+                _context.Persons.Remove(existingPerson);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Deleted person with Id: {id}");
+
+                return existingPerson;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting person with Id: {id}");
+                throw;
+            }
         }
 
         public async Task<Person> UpdatePerson(Person person)
         {
-            var existingPerson = _context.Persons.Find(person.Id);
-
-            if (existingPerson != null)
+            try
             {
-                existingPerson.Name = person.Name;
-                existingPerson.IsMarried = person.IsMarried;
-                existingPerson.Phone = person.Phone;
-                existingPerson.DateOfBirth = person.DateOfBirth;
-                existingPerson.Salary = person.Salary;
+                var existingPerson = _context.Persons.Find(person.Id);
 
-                await _context.SaveChangesAsync();
-                return existingPerson;
+                if (existingPerson != null)
+                {
+                    existingPerson.Name = person.Name;
+                    existingPerson.IsMarried = person.IsMarried;
+                    existingPerson.Phone = person.Phone;
+                    existingPerson.DateOfBirth = person.DateOfBirth;
+                    existingPerson.Salary = person.Salary;
 
+                    _context.Persons.Update(existingPerson);
+                    await _context.SaveChangesAsync();
+
+                    _logger.LogInformation($"Updated person with Id: {person.Id}");
+
+                    return existingPerson;
+                }
+                else
+                    throw new ArgumentException("Person does not exist", nameof(person.Id));
             }
-            else
-                throw new ArgumentException("Person does not exist", nameof(person.Id));
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating person with Id: {person.Id}");
+                throw;
+            }
         }
     }
 }
