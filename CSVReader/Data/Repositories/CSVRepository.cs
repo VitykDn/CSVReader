@@ -86,7 +86,7 @@ namespace CSVReader.Data.Repositories
                 if (existingPerson != null)
                 {
                     existingPerson.Name = person.Name;
-                    existingPerson.IsMarried = person.IsMarried;
+                    //existingPerson.IsMarried = person.IsMarried;
                     existingPerson.Phone = person.Phone;
                     existingPerson.DateOfBirth = person.DateOfBirth;
                     existingPerson.Salary = person.Salary;

@@ -52,7 +52,7 @@
                 <tr data-id="@item.Id">
                     <td data-field="Id">@item.Id</td>
                     <td class="editable" data-field="Name">@item.Name</td>
-                    <td class="editable" data-field="IsMarried"><input type="checkbox" @(item.IsMarried ? "checked" : "")  /></td>
+                    <td class="editable" data-field="IsMarried">@item.IsMarried</td>
                     <td class="editable" data-field="Phone">@item.Phone</td>
                     <td class="editable" data-field="DateOfBirth">@item.DateOfBirth.ToShortDateString()</td>
                     <td class="editable" data-field="Salary">@item.Salary</td>
@@ -130,6 +130,7 @@
 </script>
 
 @*///Inline editing///*@
+
 <script>
     $(document).ready(function () {
         $('.editable').on('click', function () {
@@ -159,7 +160,7 @@
             var $row = $(this).closest('tr');
             var id = $row.data('id');
             var name = $row.find('[data-field="Name"] input').val();
-            var isMarried = $row.find('[data-field="IsMarried"] input').prop('checked');
+             isMarried = $row.find('[data-field="IsMarried"] input').prop('checked');
             var phone = $row.find('[data-field="Phone"] input').val();
             var dateOfBirth = $row.find('[data-field="DateOfBirth"] input').val();
             var salary = $row.find('[data-field="Salary"] input').val();
@@ -194,14 +195,15 @@
                 var field = $(this).data('field');
                 var value = $(this).find('input').val() || $(this).text().trim();
                 if (field === 'IsMarried') {
-                    value = $(this).find('input').prop('checked');}
+                    value = $(this).find('input').prop('checked');
+                }
                 data[field] = value;
             });
             console.log("data ", data)
             $.ajax({
                 type: 'POST',
                 url: '/CSVPerson/Update',
-                 data: data ,
+                data: data,
                 success: function () {
                     $row.find('[data-field="Name"]').text(name);
                     $row.find('[data-field="IsMarried"]').text(isMarried ? 'Yes' : 'No');
@@ -216,3 +218,92 @@
         });
     });
 </script>
+
+@*<script>
+    $(document).ready(function () {
+        $('.editable').on('click', function () {
+            var $cell = $(this);
+            var value = $cell.text();
+            if (value) {
+                value = value.trim();
+            }
+            var fieldName = $cell.data('field');
+            var inputType = 'text';
+
+            if (fieldName === 'IsMarried') {
+                inputType = 'checkbox';
+                value = value === 'Yes';
+            } else if (fieldName === 'DateOfBirth') {
+                inputType = 'date';
+            } else if (fieldName === 'Salary') {
+                inputType = 'number';
+            }
+
+            $cell.html('<input type="' + inputType + '" value="' + value + '">');
+
+            $cell.find('input').focus();
+        });
+
+
+        $('table').on('blur', '.editable input', function () {
+            var $row = $(this).closest('tr');
+            var id = $row.data('id');
+            var name = $row.find('[data-field="Name"] input').val();
+            var isMarried = $row.find('[data-field="IsMarried"] input').is(':checked');
+            var phone = $row.find('[data-field="Phone"] input').val();
+            var dateOfBirth = $row.find('[data-field="DateOfBirth"] input').val();
+            var salary = $row.find('[data-field="Salary"] input').val();
+
+            if (typeof name !== 'undefined' && name.trim() === '') {
+                var $nameInput = $row.find('[data-field="Name"] input');
+                $nameInput.addClass('error');
+                $nameInput.focus();
+                return;
+            }
+            if (typeof phone !== 'undefined' && phone.trim() === '') {
+                var $phoneInput = $row.find('[data-field="Phone"] input');
+                $phoneInput.addClass('error');
+                $phoneInput.focus();
+                return;
+            }
+            if (typeof dateOfBirth !== 'undefined' && dateOfBirth.trim() === '') {
+                var $dateOfBirthInput = $row.find('[data-field="DateOfBirth"] input');
+                $dateOfBirthInput.addClass('error');
+                $dateOfBirthInput.focus();
+                return;
+            }
+            if (typeof salary !== 'undefined' && salary.trim() === '') {
+                var $salaryInput = $row.find('[data-field="Salary"] input');
+                $salaryInput.addClass('error');
+                $salaryInput.focus();
+                return;
+            }
+
+            var data = {};
+            $row.find('[data-field]').each(function () {
+                var field = $(this).data('field');
+                var value = $(this).find('input').val() || $(this).text().trim();
+                if (field === 'IsMarried') {
+                    value = $(this).find('input').prop('checked') ? 'Yes' : 'No';
+                }
+                data[field] = value;
+            });
+            console.log("data ", data)
+            $.ajax({
+                type: 'POST',
+                url: '/CSVPerson/Update',
+                data: data,
+                success: function () {
+                    $row.find('[data-field="Name"]').text(name);
+                    $row.find('[data-field="IsMarried"]').text(isMarried ? 'Yes' : 'No');
+                    $row.find('[data-field="Phone"]').text(phone);
+                    $row.find('[data-field="DateOfBirth"]').text(dateOfBirth);
+                    $row.find('[data-field="Salary"]').text(salary);
+                },
+                error: function () {
+                    alert('Failed to save data.');
+                }
+            });
+        });
+    });
+</script>*@

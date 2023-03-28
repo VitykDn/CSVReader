@@ -60,9 +60,8 @@ namespace CSVReader.Controllers
         [HttpPost]
         public async Task<IActionResult> Update([Bind("Id,Name,IsMarried,Phone,DateOfBirth,Salary")] Person person)
         {
-            ModelState["IsMarried"].Errors.Clear();
-            if (ModelState.IsValid)
-            {
+
+
                 try
                 {
                     var updatedPerson = await _repository.UpdatePerson(person);
@@ -74,13 +73,9 @@ namespace CSVReader.Controllers
                     return BadRequest("Error while updating data");
                 }
 
-                return Ok();
-            }
-            else
-            {
-                _logger.LogError("Model State is not valid");
-                return BadRequest("Model State is not valid");
-            }
+
+
+
         }
 
         public async Task<IActionResult> Delete(int id)

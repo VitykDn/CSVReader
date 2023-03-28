@@ -10,7 +10,7 @@ namespace CSVReader.Data.Validation
             {
                 var extension = Path.GetExtension(file.FileName);
 
-                string[] extensions = { "jpg", "png" };
+                string[] extensions = { "csv" };
                 bool result = extensions.Any(x => extension.EndsWith(x));
 
                 if (!result)

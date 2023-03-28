@@ -1,0 +1,7 @@
+Name,DateOfBirth,IsMarried,Phone,Salary
+John Doe,25/03/1985,TRUE,123-456-7890,50000
+John Smith,25/03/1985,true,123-456-7890,50000
+Jane Doe,12/08/1990,false,555-555-5555,70000
+Bob Johnson,10/01/1978,true,999-999-9999,60000
+Mary Brown,02/05/1995,false,777-777-7777,45000
+James Davis,20/11/1980,true,888-888-8888,80000
