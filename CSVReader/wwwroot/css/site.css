@@ -19,3 +19,43 @@ body {
 input.error, input.error:focus {
     border: 2px solid red;
 }
+#person-table {
+    border: 1px solid #ddd;
+    border-collapse: collapse;
+    margin: 20px 0;
+    width: 100%;
+}
+
+    #person-table th {
+        background-color: #f2f2f2;
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    #person-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    #person-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+#search-input {
+    width: 100%;
+    max-width: 300px;
+}
+
+#upload-btn {
+    margin-top: 10px;
+}
+
+#person-table-container {
+    margin-top: 20px;
+}
+
+.confirmDeletion {
+    color: red;
+}
